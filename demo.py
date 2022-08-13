@@ -523,6 +523,6 @@ if st.button('Translate Sentence'):
             st.write("Your Mandarin Text:")
             st.write(inp)
             st.write("Your Cantonese Translation:")
-            st.write(charpiece(n).numpy().decode('UTF-8'))
+            st.write(charpiece(ninp).numpy().decode('UTF-8'))
 else:
     pass
