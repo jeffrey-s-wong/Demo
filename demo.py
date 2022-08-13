@@ -429,23 +429,22 @@ def load_model():
             rate=dropout_rate
         )
 
-        # create the checkpoint path and the checkpoint manager
-        # the manager will be used to save checkpoints every n epochs
-        checkpoint_path = './chkpt'
+        # # checkpoint load
+        # checkpoint_path = './chkpt'
 
-        ckpt = tf.train.Checkpoint(transformer=transformer)#, optimizer=optimizer)
+        # ckpt = tf.train.Checkpoint(transformer=transformer)#, optimizer=optimizer)
 
-        ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
+        # ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 
-        # if a checkpoint exists, restore the latest checkpoint
-        if ckpt_manager.latest_checkpoint:
-            ckpt.restore(ckpt_manager.latest_checkpoint)
-            last_epoch = int(ckpt_manager.latest_checkpoint.split("-")[-1])*10
-            st.success(f"Model is loaded with {last_epoch} trained epochs.")
-            print(f'Transformer model is loaded successfully.')
-        else:
-            print("Transformer model not found.")
-            st.error("No trained model is loaded.")
+        # # if a checkpoint exists, restore the latest checkpoint
+        # if ckpt_manager.latest_checkpoint:
+        #     ckpt.restore(ckpt_manager.latest_checkpoint)
+        #     last_epoch = int(ckpt_manager.latest_checkpoint.split("-")[-1])*10
+        #     st.success(f"Model is loaded with {last_epoch} trained epochs.")
+        #     print(f'Transformer model is loaded successfully.')
+        # else:
+        #     print("Transformer model not found.")
+        #     st.error("No trained model is loaded.")
 
     with st.spinner('Loading Translator...'):
         print("Loading Translator...")
@@ -507,6 +506,8 @@ def load_model():
                 return text, tokens, attention_weights
 
         char_translator = Translator(transformer)
+        char_translator(tf.constant('dummy'))
+        transformer.load_weights('assets/weights')
 
         class ExportTranslator(tf.Module):
             def __init__(self, translator):
