@@ -5,11 +5,11 @@ with st.spinner('Importing dependencies...'):
     import tensorflow as tf
     from transformers import BertTokenizer
     import sentencepiece as spm
-# import opencc
+    import opencc
+    from tokenizers.normalizers import BertNormalizer
 
-st.title('Mandarin to Cantonese Translator')
-# from tokenizers.normalizers import BertNormalizer
 print('Dependencies loaded')
+st.title('Mandarin to Cantonese Translator')
 
 @st.cache(allow_output_mutation=True, show_spinner=False)
 def load_model():
@@ -21,39 +21,6 @@ def load_model():
         dff = 512
         num_heads = 8
         dropout_rate = 0.1
-
-        class Normaliser():
-            def __init__(self, text):
-                self.text = text
-                self.newstring = ""
-                # Use BertNormalizer to convert clean
-                self.normalizer = BertNormalizer(clean_text = True, handle_chinese_chars = False, strip_accents = None, lowercase = True)
-
-            def to_trad(self):
-                """Convert simplified to traditional"""
-                converter = opencc.OpenCC('s2t.json')
-                self.text = converter.convert(self.text)
-            
-            def punctuations(self):
-                for uchar in self.text:
-                    ucode = ord(uchar)
-                    if ucode == 8943: # '⋯'
-                        for i in range(3):
-                            self.newstring += chr(46)
-                    else:
-                        if ucode == 12288:
-                            ucode = 32
-                        elif 65281 <= ucode <= 65374:
-                            ucode -= 65248
-                        elif ucode == 8943: # '⋯'
-                            ucode 
-                        self.newstring += chr(ucode)              
-
-            def normalise(self):
-                self.to_trad()
-                self.text = self.normalizer.normalize_str(self.text)
-                self.punctuations()
-                return self.newstring
 
         # Load Tokenizers
         PRETRAINED_MODEL_NAME = "bert-base-chinese" 
@@ -429,22 +396,6 @@ def load_model():
             rate=dropout_rate
         )
 
-        # # checkpoint load
-        # checkpoint_path = './chkpt'
-
-        # ckpt = tf.train.Checkpoint(transformer=transformer)#, optimizer=optimizer)
-
-        # ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
-
-        # # if a checkpoint exists, restore the latest checkpoint
-        # if ckpt_manager.latest_checkpoint:
-        #     ckpt.restore(ckpt_manager.latest_checkpoint)
-        #     last_epoch = int(ckpt_manager.latest_checkpoint.split("-")[-1])*10
-        #     st.success(f"Model is loaded with {last_epoch} trained epochs.")
-        #     print(f'Transformer model is loaded successfully.')
-        # else:
-        #     print("Transformer model not found.")
-        #     st.error("No trained model is loaded.")
 
     with st.spinner('Loading Translator...'):
         print("Loading Translator...")
@@ -506,8 +457,8 @@ def load_model():
                 return text, tokens, attention_weights
 
         char_translator = Translator(transformer)
-        char_translator(tf.constant('dummy'))
-        transformer.load_weights('assets/weights')
+        char_translator(tf.constant('dummy')) # build model
+        transformer.load_weights('assets/weights') # load saved weights into model
 
         class ExportTranslator(tf.Module):
             def __init__(self, translator):
@@ -525,16 +476,39 @@ def load_model():
         print("Translator loaded successfully!")
     return charpiece
 
-    # while True:
-    #     inp = input("Input Mandarin text: ")
-    #     print(f"Mandarin text: {inp}")
-    #     if inp.lower() != 'quit':
-    #         # n = Normaliser(inp)
-    #         # ninp = n.normalise()
-    #         # print(f"Cantonese translation : {charpiece(ninp).numpy().decode('UTF-8')}")
-    #         print(f"Cantonese translation : {charpiece(inp).numpy().decode('UTF-8')}")
-    #     else:
-    #         break
+class Normaliser():
+            def __init__(self, text):
+                self.text = text
+                self.newstring = ""
+                # Use BertNormalizer to convert clean
+                self.normalizer = BertNormalizer(clean_text = True, handle_chinese_chars = False, strip_accents = None, lowercase = True)
+
+            def to_trad(self):
+                """Convert simplified to traditional"""
+                converter = opencc.OpenCC('s2t.json')
+                self.text = converter.convert(self.text)
+            
+            def punctuations(self):
+                for uchar in self.text:
+                    ucode = ord(uchar)
+                    if ucode == 8943: # '⋯'
+                        for i in range(3):
+                            self.newstring += chr(46)
+                    else:
+                        if ucode == 12288:
+                            ucode = 32
+                        elif 65281 <= ucode <= 65374:
+                            ucode -= 65248
+                        elif ucode == 8943: # '⋯'
+                            ucode 
+                        self.newstring += chr(ucode)              
+
+            def normalise(self):
+                self.to_trad()
+                self.text = self.normalizer.normalize_str(self.text)
+                self.punctuations()
+                return self.newstring
+
 
 charpiece = load_model()
 inp = st.text_area("Enter Mandarin text:",height=2,max_chars=150,key=None,help="Enter Mandarin text here")
@@ -544,9 +518,11 @@ if st.button('Translate Sentence'):
             st.warning('Please **enter Mandarin text** for translation')
 
         else:
+            n = Normaliser(inp)
+            ninp = n.normalise()
             st.write("Your Mandarin Text:")
             st.write(inp)
             st.write("Your Cantonese Translation:")
-            st.write(charpiece(inp).numpy().decode('UTF-8'))
+            st.write(charpiece(n).numpy().decode('UTF-8'))
 else:
     pass
