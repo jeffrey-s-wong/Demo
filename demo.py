@@ -431,7 +431,7 @@ def load_model():
 
         # create the checkpoint path and the checkpoint manager
         # the manager will be used to save checkpoints every n epochs
-        checkpoint_path = '/chkpt'
+        checkpoint_path = './chkpt'
 
         ckpt = tf.train.Checkpoint(transformer=transformer)#, optimizer=optimizer)
 
