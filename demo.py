@@ -440,11 +440,8 @@ def load_model():
         # if a checkpoint exists, restore the latest checkpoint
         if ckpt_manager.latest_checkpoint:
             ckpt.restore(ckpt_manager.latest_checkpoint)
-
-            last_epoch = int(ckpt_manager.latest_checkpoint.split("-")[-1])*10
             print(f'Transformer model is loaded successfully.')
         else:
-            last_epoch = 0
             print("Transformer model not found.")
 
     with st.spinner('Loading Translator...'):
