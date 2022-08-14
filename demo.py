@@ -10,6 +10,7 @@ with st.spinner('Importing dependencies...'):
 
 print('Dependencies loaded')
 st.title('Mandarin to Cantonese Translator')
+st.caption('Built by Jeffrey S Wong')
 
 @st.cache(allow_output_mutation=True, show_spinner=False)
 def load_model():
@@ -511,7 +512,7 @@ class Normaliser():
 
 
 charpiece = load_model()
-inp = st.text_area("Enter Mandarin text:",height=2,max_chars=150,key=None,help="Enter Mandarin text here")
+inp = st.text_area("Enter Mandarin text:",height=2,max_chars=120,key=None,help="Enter Mandarin text here")
 if st.button('Translate Sentence'):
     with st.spinner('Translation in progress...'):
         if inp == "":
